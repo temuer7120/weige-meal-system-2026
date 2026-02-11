@@ -1,9 +1,8 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from extensions import db, jwt
 
 # 加载环境变量
 load_dotenv()
@@ -18,13 +17,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'your-jwt-secret-key')
 
 # 初始化扩展
-db = SQLAlchemy(app)
-jwt = JWTManager(app)
+db.init_app(app)
+jwt.init_app(app)
 CORS(app)
-
-# 注册API蓝图
-from api import api_bp
-app.register_blueprint(api_bp, url_prefix='/api')
 
 # 创建数据库表
 with app.app_context():
@@ -46,6 +41,10 @@ with app.app_context():
         db.session.add(admin_user)
         db.session.commit()
         print('默认管理员用户创建成功: admin/admin123')
+
+# 注册API蓝图
+from api import api_bp
+app.register_blueprint(api_bp, url_prefix='/api')
 
 if __name__ == '__main__':
     app.run(debug=True)

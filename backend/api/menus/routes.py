@@ -1,10 +1,10 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
-from .. import menus_bp
-from ...models.menu import Menu, MenuDish, CustomerMenu
-from ...models.dish import Dish
-from ...models.customer import Customer
-from ... import db
+from . import menus_bp
+from models.menu import Menu, MenuDish, CustomerMenu
+from models.dish import Dish
+from models.customer import Customer
+from extensions import db
 
 @menus_bp.route('', methods=['GET'])
 @jwt_required()

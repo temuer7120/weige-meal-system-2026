@@ -1,9 +1,9 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from .. import system_bp
-from ...models.system import OperationLog, Permission, RolePermission
-from ...models.user import User
-from ... import db
+from . import system_bp
+from models.system import OperationLog, Permission, RolePermission
+from models.user import User
+from extensions import db
 
 @system_bp.route('/permissions', methods=['GET'])
 @jwt_required()

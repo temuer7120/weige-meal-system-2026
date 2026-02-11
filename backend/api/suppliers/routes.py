@@ -1,8 +1,8 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
-from .. import suppliers_bp
-from ...models.supplier import Supplier
-from ... import db
+from . import suppliers_bp
+from models.supplier import Supplier
+from app import db
 
 @suppliers_bp.route('', methods=['GET'])
 @jwt_required()

@@ -34,7 +34,9 @@
         </el-form-item>
         
         <el-form-item label="客户名称">
-          <el-input v-model="searchForm.customerName" placeholder="请输入客户名称" style="width: 200px"></el-input>
+          <el-select v-model="searchForm.customerName" placeholder="请选择客户名称" style="width: 200px">
+            <el-option v-for="customer in customers" :key="customer.id" :label="customer.name" :value="customer.name"></el-option>
+          </el-select>
         </el-form-item>
         
         <el-form-item label="日期范围">
@@ -230,11 +232,153 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 创建订单对话框 -->
+    <el-dialog
+      title="创建订单"
+      :visible.sync="createDialogVisible"
+      width="800px"
+    >
+      <el-form :model="createOrderForm" :rules="createOrderRules" ref="createOrderFormRef" label-width="100px">
+        <el-form-item label="订单类型" prop="order_type">
+          <el-select v-model="createOrderForm.order_type" placeholder="请选择订单类型">
+            <el-option label="餐食订单" value="meal"></el-option>
+            <el-option label="服务订单" value="service"></el-option>
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="客户姓名" prop="customer_id">
+          <el-select v-model="createOrderForm.customer_id" placeholder="请选择客户姓名" @change="handleCustomerChange">
+            <el-option v-for="customer in customers" :key="customer.id" :label="customer.name" :value="customer.id"></el-option>
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="客户禁忌" v-if="selectedCustomer.dietary_restrictions">
+          <el-alert
+            :title="'饮食禁忌：' + selectedCustomer.dietary_restrictions"
+            type="warning"
+            :closable="false"
+          />
+        </el-form-item>
+        
+        <el-form-item label="服务禁忌" v-if="selectedCustomer.service_restrictions && selectedCustomer.service_restrictions !== '无'">
+          <el-alert
+            :title="'服务禁忌：' + selectedCustomer.service_restrictions"
+            type="warning"
+            :closable="false"
+          />
+        </el-form-item>
+        
+        <el-form-item label="产后时期" v-if="selectedCustomer.delivery_date">
+          <el-alert
+            :title="'产后时期：' + calculatePostpartumPeriod(selectedCustomer.delivery_date)"
+            type="info"
+            :closable="false"
+          />
+        </el-form-item>
+        
+        <el-form-item label="预定人" prop="booker_name">
+          <el-input v-model="createOrderForm.booker_name" placeholder="请输入预定人姓名"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="预定人角色" prop="booker_role">
+          <el-select v-model="createOrderForm.booker_role" placeholder="请选择预定人角色">
+            <el-option label="客户" value="customer"></el-option>
+            <el-option label="员工" value="employee"></el-option>
+            <el-option label="其他" value="other"></el-option>
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="服务员工" prop="service_employee_id">
+          <el-select v-model="createOrderForm.service_employee_id" placeholder="请选择服务员工">
+            <el-option label="张三" value="1"></el-option>
+            <el-option label="李四" value="2"></el-option>
+            <el-option label="王五" value="3"></el-option>
+          </el-select>
+        </el-form-item>
+        
+        <el-form-item label="配送/服务日期" prop="delivery_date">
+          <el-date-picker v-model="createOrderForm.delivery_date" type="date" placeholder="请选择日期" style="width: 100%"></el-date-picker>
+        </el-form-item>
+        
+        <el-form-item label="开始时间" prop="start_time">
+          <el-time-picker v-model="createOrderForm.start_time" placeholder="请选择开始时间" style="width: 100%"></el-time-picker>
+        </el-form-item>
+        
+        <el-form-item label="结束时间" prop="end_time">
+          <el-time-picker v-model="createOrderForm.end_time" placeholder="请选择结束时间" style="width: 100%"></el-time-picker>
+        </el-form-item>
+        
+        <el-form-item label="配送地址" prop="delivery_address">
+          <el-input v-model="createOrderForm.delivery_address" type="textarea" placeholder="请输入配送地址"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="备注">
+          <el-input v-model="createOrderForm.notes" type="textarea" placeholder="请输入备注"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="订单项目" prop="items">
+          <el-table :data="createOrderForm.items" style="width: 100%">
+            <el-table-column prop="item_type" label="项目类型" width="100">
+              <template #default="scope">
+                <el-select v-model="scope.row.item_type" placeholder="请选择类型">
+                  <el-option label="菜品" value="dish"></el-option>
+                  <el-option label="菜单" value="menu"></el-option>
+                  <el-option label="服务" value="service"></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column prop="item_id" label="项目名称">
+              <template #default="scope">
+                <el-select v-model="scope.row.item_id" placeholder="请选择项目" @change="handleItemChange(scope.row)">
+                  <el-option v-for="dish in dishes" :key="dish.id" :label="dish.name" :value="dish.id" v-if="scope.row.item_type === 'dish'"></el-option>
+                  <el-option v-for="menu in menus" :key="menu.id" :label="menu.name" :value="menu.id" v-if="scope.row.item_type === 'menu'"></el-option>
+                  <el-option v-for="service in services" :key="service.id" :label="service.name" :value="service.id" v-if="scope.row.item_type === 'service'"></el-option>
+                </el-select>
+              </template>
+            </el-table-column>
+            <el-table-column prop="quantity" label="数量" width="100">
+              <template #default="scope">
+                <el-input v-model.number="scope.row.quantity" type="number" min="1"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="price" label="单价" width="100">
+              <template #default="scope">
+                <el-input v-model.number="scope.row.price" type="number" min="0"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column prop="subtotal" label="小计" width="100">
+              <template #default="scope">
+                ¥{{ (scope.row.quantity || 0) * (scope.row.price || 0) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="100">
+              <template #default="scope">
+                <el-button type="danger" size="small" @click="removeOrderItem(scope.$index)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-button type="primary" size="small" @click="addOrderItem" style="margin-top: 10px">添加项目</el-button>
+        </el-form-item>
+        
+        <el-form-item label="总金额" prop="total_amount">
+          <el-input v-model.number="createOrderForm.total_amount" placeholder="请输入总金额" type="number"></el-input>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="createDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleCreateOrderSubmit">创建订单</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../services/api'
 
 export default {
@@ -253,6 +397,72 @@ export default {
     const currentPage = ref(1)
     const pageSize = ref(10)
     const total = ref(100)
+    
+    // 入住客户列表
+    const customers = ref([
+      { id: 1, name: '张三', dietary_restrictions: '海鲜过敏', service_restrictions: '无', health_status: '健康' },
+      { id: 2, name: '李四', dietary_restrictions: '辛辣食物', service_restrictions: '无', health_status: '健康' },
+      { id: 3, name: '王五', dietary_restrictions: '无', service_restrictions: '无', health_status: '健康' },
+      { id: 4, name: '赵六', dietary_restrictions: '乳糖不耐', service_restrictions: '无', health_status: '健康' },
+      { id: 5, name: '孙七', dietary_restrictions: '花生过敏', service_restrictions: '无', health_status: '健康' }
+    ])
+    
+    // 菜品列表
+    const dishes = ref([
+      { id: 1, name: '宫保鸡丁', price: 48, restrictions: '辛辣', suitable_for: '无禁忌' },
+      { id: 2, name: '麻婆豆腐', price: 38, restrictions: '辛辣', suitable_for: '无禁忌' },
+      { id: 3, name: '米饭', price: 5, restrictions: '无', suitable_for: '无禁忌' },
+      { id: 4, name: '可乐', price: 12, restrictions: '含咖啡因', suitable_for: '无禁忌' },
+      { id: 5, name: '海鲜炒饭', price: 58, restrictions: '海鲜', suitable_for: '无海鲜过敏' }
+    ])
+    
+    // 菜单列表
+    const menus = ref([
+      { id: 1, name: '营养早餐套餐', price: 88, restrictions: '无', suitable_for: '所有人群' },
+      { id: 2, name: '健康午餐套餐', price: 128, restrictions: '无', suitable_for: '所有人群' },
+      { id: 3, name: '海鲜晚餐套餐', price: 198, restrictions: '海鲜', suitable_for: '无海鲜过敏' }
+    ])
+    
+    // 服务列表
+    const services = ref([
+      { id: 1, name: '母婴护理', price: 298, restrictions: '无', suitable_for: '产妇和婴儿' },
+      { id: 2, name: '老人陪护', price: 258, restrictions: '无', suitable_for: '老年人' },
+      { id: 3, name: '康复护理', price: 398, restrictions: '无', suitable_for: '康复期病人' }
+    ])
+    
+    // 选中的客户
+    const selectedCustomer = ref({})
+    
+    // 创建订单对话框
+    const createDialogVisible = ref(false)
+    const createOrderForm = reactive({
+      order_type: 'meal',
+      customer_id: '',
+      booker_name: '',
+      booker_role: 'customer',
+      service_employee_id: '',
+      delivery_date: '',
+      start_time: '',
+      end_time: '',
+      delivery_address: '',
+      notes: '',
+      items: [],
+      total_amount: 0
+    })
+    const createOrderFormRef = ref(null)
+    
+    const createOrderRules = {
+      order_type: [{ required: true, message: '请选择订单类型', trigger: 'blur' }],
+      customer_id: [{ required: true, message: '请选择客户姓名', trigger: 'blur' }],
+      booker_name: [{ required: true, message: '请输入预定人姓名', trigger: 'blur' }],
+      booker_role: [{ required: true, message: '请选择预定人角色', trigger: 'blur' }],
+      service_employee_id: [{ required: true, message: '请选择服务员工', trigger: 'blur' }],
+      delivery_date: [{ required: true, message: '请选择配送/服务日期', trigger: 'blur' }],
+      start_time: [{ required: true, message: '请选择开始时间', trigger: 'blur' }],
+      end_time: [{ required: true, message: '请选择结束时间', trigger: 'blur' }],
+      items: [{ required: true, message: '请添加订单项目', trigger: 'blur' }],
+      total_amount: [{ required: true, message: '请输入总金额', trigger: 'blur', type: 'number' }]
+    }
     
     // 订单数据
     const orders = ref([
@@ -396,10 +606,188 @@ export default {
       detailDialogVisible.value = true
     }
     
+    // 处理客户变更
+    const handleCustomerChange = (customerId) => {
+      const customer = customers.value.find(c => c.id === customerId)
+      if (customer) {
+        selectedCustomer.value = { ...customer }
+      } else {
+        selectedCustomer.value = {}
+      }
+    }
+    
+    // 处理项目变更
+    const handleItemChange = (item) => {
+      if (item.item_type === 'dish') {
+        const dish = dishes.value.find(d => d.id === item.item_id)
+        if (dish) {
+          item.price = dish.price
+          // 检查客户饮食禁忌
+          if (selectedCustomer.value.dietary_restrictions && dish.restrictions) {
+            const customerRestrictions = selectedCustomer.value.dietary_restrictions.split('、')
+            const dishRestrictions = dish.restrictions.split('、')
+            const hasConflict = customerRestrictions.some(cr => dishRestrictions.includes(cr))
+            if (hasConflict) {
+              ElMessage.warning(`警告：该菜品包含客户饮食禁忌内容！`)
+            }
+          }
+        }
+      } else if (item.item_type === 'menu') {
+        const menu = menus.value.find(m => m.id === item.item_id)
+        if (menu) {
+          item.price = menu.price
+          // 检查客户饮食禁忌
+          if (selectedCustomer.value.dietary_restrictions && menu.restrictions) {
+            const customerRestrictions = selectedCustomer.value.dietary_restrictions.split('、')
+            const menuRestrictions = menu.restrictions.split('、')
+            const hasConflict = customerRestrictions.some(cr => menuRestrictions.includes(cr))
+            if (hasConflict) {
+              ElMessage.warning(`警告：该菜单包含客户饮食禁忌内容！`)
+            }
+          }
+        }
+      } else if (item.item_type === 'service') {
+        const service = services.value.find(s => s.id === item.item_id)
+        if (service) {
+          item.price = service.price
+          // 检查客户服务禁忌
+          if (selectedCustomer.value.service_restrictions && service.restrictions) {
+            const customerRestrictions = selectedCustomer.value.service_restrictions.split('、')
+            const serviceRestrictions = service.restrictions.split('、')
+            const hasConflict = customerRestrictions.some(cr => serviceRestrictions.includes(cr))
+            if (hasConflict) {
+              ElMessage.warning(`警告：该服务包含客户服务禁忌内容！`)
+            }
+          }
+        }
+      }
+      // 更新总金额
+      updateTotalAmount()
+    }
+    
+    // 添加订单项目
+    const addOrderItem = () => {
+      createOrderForm.items.push({
+        item_type: 'dish',
+        item_id: '',
+        quantity: 1,
+        price: 0
+      })
+    }
+    
+    // 删除订单项目
+    const removeOrderItem = (index) => {
+      createOrderForm.items.splice(index, 1)
+      // 更新总金额
+      updateTotalAmount()
+    }
+    
+    // 更新总金额
+    const updateTotalAmount = () => {
+      createOrderForm.total_amount = createOrderForm.items.reduce((total, item) => {
+        return total + (item.quantity || 0) * (item.price || 0)
+      }, 0)
+    }
+    
     // 处理添加订单
     const handleAddOrder = () => {
-      console.log('添加订单')
-      // 这里可以添加实际的添加订单逻辑
+      // 重置表单
+      Object.assign(createOrderForm, {
+        order_type: 'meal',
+        customer_id: '',
+        booker_name: '',
+        booker_role: 'customer',
+        service_employee_id: '',
+        delivery_date: '',
+        start_time: '',
+        end_time: '',
+        delivery_address: '',
+        notes: '',
+        items: [],
+        total_amount: 0
+      })
+      selectedCustomer.value = {}
+      createDialogVisible.value = true
+    }
+    
+    // 处理创建订单提交
+    const handleCreateOrderSubmit = async () => {
+      if (!createOrderFormRef.value) return
+      
+      try {
+        await createOrderFormRef.value.validate()
+        
+        // 检查所有项目的禁忌内容
+        let hasConflict = false
+        let conflictItems = []
+        
+        createOrderForm.items.forEach(item => {
+          if (item.item_type === 'dish') {
+            const dish = dishes.value.find(d => d.id === item.item_id)
+            if (dish && selectedCustomer.value.dietary_restrictions && dish.restrictions) {
+              const customerRestrictions = selectedCustomer.value.dietary_restrictions.split('、')
+              const dishRestrictions = dish.restrictions.split('、')
+              const hasDishConflict = customerRestrictions.some(cr => dishRestrictions.includes(cr))
+              if (hasDishConflict) {
+                hasConflict = true
+                conflictItems.push(`菜品：${dish.name}`)
+              }
+            }
+          } else if (item.item_type === 'menu') {
+            const menu = menus.value.find(m => m.id === item.item_id)
+            if (menu && selectedCustomer.value.dietary_restrictions && menu.restrictions) {
+              const customerRestrictions = selectedCustomer.value.dietary_restrictions.split('、')
+              const menuRestrictions = menu.restrictions.split('、')
+              const hasMenuConflict = customerRestrictions.some(cr => menuRestrictions.includes(cr))
+              if (hasMenuConflict) {
+                hasConflict = true
+                conflictItems.push(`菜单：${menu.name}`)
+              }
+            }
+          } else if (item.item_type === 'service') {
+            const service = services.value.find(s => s.id === item.item_id)
+            if (service && selectedCustomer.value.service_restrictions && service.restrictions) {
+              const customerRestrictions = selectedCustomer.value.service_restrictions.split('、')
+              const serviceRestrictions = service.restrictions.split('、')
+              const hasServiceConflict = customerRestrictions.some(cr => serviceRestrictions.includes(cr))
+              if (hasServiceConflict) {
+                hasConflict = true
+                conflictItems.push(`服务：${service.name}`)
+              }
+            }
+          }
+        })
+        
+        if (hasConflict) {
+          ElMessageBox.confirm(
+            `订单中包含客户禁忌内容：\n${conflictItems.join('\n')}\n是否继续创建？`,
+            '警告',
+            {
+              confirmButtonText: '继续',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }
+          ).then(() => {
+            submitOrder()
+          }).catch(() => {
+            // 取消创建
+          })
+        } else {
+          submitOrder()
+        }
+      } catch (error) {
+        console.log('验证失败', error)
+      }
+    }
+    
+    // 提交订单
+    const submitOrder = () => {
+      console.log('创建订单', createOrderForm)
+      // 这里可以添加实际的提交逻辑
+      createDialogVisible.value = false
+      ElMessage.success('订单创建成功！')
+      // 刷新数据
+      // fetchOrders()
     }
     
     // 处理确认订单
@@ -455,6 +843,7 @@ export default {
     // 分页处理
     const handleSizeChange = (size) => {
       pageSize.value = size
+      currentPage.value = 1
       // 刷新数据
       // fetchOrders()
     }
@@ -476,6 +865,26 @@ export default {
       }
     }
     
+    // 计算产后时期
+    const calculatePostpartumPeriod = (deliveryDate) => {
+      if (!deliveryDate) return '未知'
+      
+      const delivery = new Date(deliveryDate)
+      const now = new Date()
+      const diffTime = Math.abs(now - delivery)
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      
+      if (diffDays <= 7) {
+        return '产后1周'
+      } else if (diffDays <= 28) {
+        return '产后2-4周'
+      } else if (diffDays <= 180) {
+        return '产后5-26周'
+      } else {
+        return '哺乳期'
+      }
+    }
+    
     // 生命周期
     onMounted(() => {
       // 获取数据
@@ -485,6 +894,10 @@ export default {
     return {
       searchForm,
       orders,
+      customers,
+      dishes,
+      menus,
+      services,
       currentPage,
       pageSize,
       total,
@@ -496,6 +909,12 @@ export default {
       bankForm,
       bankFormRef,
       bankRules,
+      createDialogVisible,
+      createOrderForm,
+      createOrderFormRef,
+      createOrderRules,
+      selectedCustomer,
+      calculatePostpartumPeriod,
       getStatusType,
       getStatusText,
       handleSearch,
@@ -506,6 +925,11 @@ export default {
       handleCancelOrder,
       handlePayOrder,
       handlePaymentSubmit,
+      handleCreateOrderSubmit,
+      handleCustomerChange,
+      handleItemChange,
+      addOrderItem,
+      removeOrderItem,
       handleImport,
       handleExport,
       handleSizeChange,

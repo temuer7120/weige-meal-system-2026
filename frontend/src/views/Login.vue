@@ -1,25 +1,12 @@
 <template>
   <div class="login-container">
-    <!-- 公司网站头部 -->
-    <div class="company-header">
-      <div class="company-logo">
-        <h1>上海巍阁母婴护理中心</h1>
-      </div>
-      <div class="company-nav">
-        <a href="#" class="nav-link">首页</a>
-        <a href="#" class="nav-link">关于我们</a>
-        <a href="#" class="nav-link">服务项目</a>
-        <a href="#" class="nav-link">联系我们</a>
-      </div>
-    </div>
-
     <!-- 登录注册区域 -->
     <div class="login-register-section">
       <div class="login-register-container">
         <!-- 左侧：系统介绍 -->
         <div class="system-intro">
           <h2>服务项目</h2>
-          <p>专业的月子餐、母婴护理服务解决方案，为您和宝宝提供全方位的呵护与关爱。</p>
+          <p>高端月子餐、专业的母婴护理服务解决方案，为您和宝宝提供全方位的呵护与关爱。</p>
           <div class="features">
             <div class="feature-item">
               <el-icon class="feature-icon"><Suitcase /></el-icon>
@@ -31,7 +18,7 @@
             </div>
             <div class="feature-item">
               <el-icon class="feature-icon"><Notebook /></el-icon>
-              <span>新生儿护理</span>
+              <span>宝宝呵护</span>
             </div>
             <div class="feature-item">
               <el-icon class="feature-icon"><UserFilled /></el-icon>
@@ -90,7 +77,7 @@
             </el-form-item>
             
             <el-form-item>
-              <el-button type="primary" class="auth-button" @click="handleLogin" :loading="loading">登录</el-button>
+              <el-button type="primary" class="auth-button" @click="handleLogin" :loading="loading" style="background-color: #f6b3ba; border-color: #f6b3ba; color: #721c24;">登录</el-button>
             </el-form-item>
             
             <el-form-item v-if="error" class="error-message">
@@ -164,7 +151,7 @@
             </el-form-item>
             
             <el-form-item>
-              <el-button type="primary" class="auth-button" @click="handleRegister" :loading="loading">注册</el-button>
+              <el-button type="primary" class="auth-button" @click="handleRegister" :loading="loading" style="background-color: #f6b3ba; border-color: #f6b3ba; color: #721c24;">注册</el-button>
             </el-form-item>
             
             <el-form-item v-if="error" class="error-message">
@@ -185,7 +172,7 @@
       <!-- 首页内容 -->
       <section class="home-section">
         <h2>欢迎来到上海巍阁母婴护理中心</h2>
-        <p>专业的高端月子餐、母婴护理服务，为您和宝宝提供全方位的呵护与关爱。</p>
+        <p>我们提供高端月子餐、专业的母婴护理服务，为您和宝宝提供全方位的呵护与关爱。</p>
       </section>
       
       <!-- 关于我们内容 -->
@@ -418,43 +405,6 @@ export default {
   background-color: #f5f7fa;
 }
 
-/* 公司网站头部 */
-.company-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 50px;
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.company-logo {
-  margin-right: 60px;
-}
-
-.company-logo h1 {
-  font-size: 24px;
-  font-weight: bold;
-  color: #409EFF;
-  margin: 0;
-}
-
-.company-nav {
-  display: flex;
-  gap: 30px;
-}
-
-.nav-link {
-  text-decoration: none;
-  color: #606266;
-  font-size: 16px;
-  transition: color 0.3s;
-}
-
-.nav-link:hover {
-  color: #409EFF;
-}
-
 /* 登录注册区域 */
 .login-register-section {
   flex: 1;
@@ -478,8 +428,8 @@ export default {
 .system-intro {
   flex: 1;
   padding: 60px 40px;
-  background: linear-gradient(135deg, #409EFF 0%, #667EEA 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #f6b3ba 0%, #e88e99 100%);
+  color: #721c24;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -513,6 +463,7 @@ export default {
 .feature-icon {
   font-size: 24px;
   opacity: 0.9;
+  color: #721c24;
 }
 
 .feature-item span {
@@ -543,12 +494,12 @@ export default {
 }
 
 .auth-tab:hover {
-  color: #409EFF;
+  color: #721c24;
 }
 
 .auth-tab.active {
-  color: #409EFF;
-  border-bottom-color: #409EFF;
+  color: #721c24;
+  border-bottom-color: #f6b3ba;
 }
 
 .auth-button {
@@ -609,7 +560,7 @@ export default {
   font-size: 20px;
   color: #333;
   margin-bottom: 15px;
-  border-bottom: 2px solid #409EFF;
+  border-bottom: 2px solid #f6b3ba;
   padding-bottom: 10px;
 }
 
@@ -622,16 +573,6 @@ export default {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .company-header {
-    flex-direction: column;
-    gap: 15px;
-    padding: 15px;
-  }
-  
-  .company-logo h1 {
-    font-size: 20px;
-  }
-  
   .login-register-container {
     flex-direction: column;
   }

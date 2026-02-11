@@ -1,5 +1,6 @@
-from app import db
+from extensions import db
 from datetime import datetime
+from sqlalchemy import DECIMAL
 
 class Supplier(db.Model):
     __tablename__ = 'suppliers'
@@ -10,7 +11,7 @@ class Supplier(db.Model):
     contact_phone = db.Column(db.String(20), nullable=False)
     address = db.Column(db.Text)
     products = db.Column(db.Text)  # 供应产品
-    rating = db.Column(db.Decimal(3, 1), default=0)  # 评分
+    rating = db.Column(DECIMAL(3, 1), default=0)  # 评分
     
     def __repr__(self):
         return f'<Supplier {self.name}>'

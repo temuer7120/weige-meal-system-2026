@@ -1,8 +1,32 @@
 <template>
   <div class="dashboard">
+    <!-- 订单详情弹窗 -->
+    <el-dialog
+      v-model="orderDetailVisible"
+      title="订单详情"
+      width="600px"
+    >
+      <div v-if="selectedOrder">
+        <el-descriptions :column="2">
+          <el-descriptions-item label="订单ID">{{ selectedOrder.id }}</el-descriptions-item>
+          <el-descriptions-item label="订单类型">{{ selectedOrder.order_type }}</el-descriptions-item>
+          <el-descriptions-item label="订单金额">¥{{ selectedOrder.total_amount }}</el-descriptions-item>
+          <el-descriptions-item label="订单状态">{{ selectedOrder.status }}</el-descriptions-item>
+          <el-descriptions-item label="下单时间" :span="2">{{ selectedOrder.order_date }}</el-descriptions-item>
+        </el-descriptions>
+        <div class="order-notes">
+          <h4>订单备注</h4>
+          <p>{{ selectedOrder.notes || '无备注' }}</p>
+        </div>
+      </div>
+      <div v-else>
+        <el-empty description="暂无订单数据" />
+      </div>
+    </el-dialog>
+
     <!-- 统计卡片 -->
     <div class="dashboard-stats">
-      <el-card class="stat-card">
+      <el-card class="stat-card" @click="navigateToOrders">
         <template #header>
           <div class="stat-header">
             <span>今日订单</span>
@@ -15,7 +39,7 @@
         </div>
       </el-card>
       
-      <el-card class="stat-card">
+      <el-card class="stat-card" @click="navigateToStatistics">
         <template #header>
           <div class="stat-header">
             <span>今日销售</span>
@@ -28,7 +52,7 @@
         </div>
       </el-card>
       
-      <el-card class="stat-card">
+      <el-card class="stat-card" @click="navigateToIngredients">
         <template #header>
           <div class="stat-header">
             <span>食材库存</span>
@@ -41,7 +65,7 @@
         </div>
       </el-card>
       
-      <el-card class="stat-card">
+      <el-card class="stat-card" @click="navigateToIngredients">
         <template #header>
           <div class="stat-header">
             <span>缺货提醒</span>
@@ -61,7 +85,7 @@
         <template #header>
           <div class="chart-header">
             <span>销售趋势</span>
-            <el-select v-model="chartPeriod" size="small">
+            <el-select v-model="chartPeriod" size="small" @change="handleChartPeriodChange">
               <el-option label="近7天" value="7d"></el-option>
               <el-option label="近30天" value="30d"></el-option>
               <el-option label="近90天" value="90d"></el-option>
@@ -96,7 +120,7 @@
         </div>
       </template>
       
-      <el-table :data="recentOrders" style="width: 100%">
+      <el-table :data="recentOrders" style="width: 100%" @row-click="handleOrderRowClick">
         <el-table-column prop="id" label="订单ID" width="100"></el-table-column>
         <el-table-column prop="order_type" label="订单类型"></el-table-column>
         <el-table-column prop="total_amount" label="金额" width="120">
@@ -143,12 +167,16 @@ export default {
     
     // 最近订单数据
     const recentOrders = ref([
-      { id: 1001, order_type: '餐食订单', total_amount: 128, status: '已完成', order_date: '2026-02-09 10:30' },
-      { id: 1002, order_type: '服务订单', total_amount: 298, status: '进行中', order_date: '2026-02-09 09:15' },
-      { id: 1003, order_type: '餐食订单', total_amount: 88, status: '已完成', order_date: '2026-02-09 08:45' },
-      { id: 1004, order_type: '餐食订单', total_amount: 158, status: '已完成', order_date: '2026-02-08 18:30' },
-      { id: 1005, order_type: '服务订单', total_amount: 398, status: '已完成', order_date: '2026-02-08 15:20' }
+      { id: 1001, order_type: '餐食订单', total_amount: 128, status: '已完成', order_date: '2026-02-09 10:30', notes: '客户要求少油少盐' },
+      { id: 1002, order_type: '服务订单', total_amount: 298, status: '进行中', order_date: '2026-02-09 09:15', notes: '需要安排资深护理师' },
+      { id: 1003, order_type: '餐食订单', total_amount: 88, status: '已完成', order_date: '2026-02-09 08:45', notes: '无特殊要求' },
+      { id: 1004, order_type: '餐食订单', total_amount: 158, status: '已完成', order_date: '2026-02-08 18:30', notes: '需要打包带走' },
+      { id: 1005, order_type: '服务订单', total_amount: 398, status: '已完成', order_date: '2026-02-08 15:20', notes: '客户满意度很高' }
     ])
+
+    // 订单详情弹窗
+    const orderDetailVisible = ref(false)
+    const selectedOrder = ref(null)
     
     // 图表引用
     const salesChartRef = ref(null)
@@ -244,10 +272,30 @@ export default {
       router.push('/orders')
     }
     
+    // 导航到统计分析
+    const navigateToStatistics = () => {
+      router.push('/statistics')
+    }
+    
+    // 导航到食材管理
+    const navigateToIngredients = () => {
+      router.push('/ingredients')
+    }
+    
     // 查看订单详情
     const viewOrder = (orderId) => {
-      // 导航到订单详情页
       console.log('查看订单', orderId)
+      // 查找订单
+      const order = recentOrders.value.find(o => o.id === orderId)
+      if (order) {
+        selectedOrder.value = order
+        orderDetailVisible.value = true
+      }
+    }
+    
+    // 查看订单表格行
+    const handleOrderRowClick = (row) => {
+      viewOrder(row.id)
     }
     
     // 监听窗口大小变化
@@ -265,6 +313,21 @@ export default {
       // 这里可以添加实际的数据获取逻辑
       // fetchDashboardData()
     })
+    
+    // 处理图表周期变化
+    const handleChartPeriodChange = (newPeriod) => {
+      console.log('图表周期变化', newPeriod)
+      // 根据选择的周期更新图表数据
+      if (newPeriod === '7d') {
+        salesData.value = [1200, 1900, 3000, 2500, 3200, 2800, 3500]
+      } else if (newPeriod === '30d') {
+        salesData.value = Array.from({length: 30}, () => Math.floor(Math.random() * 3000) + 1000)
+      } else if (newPeriod === '90d') {
+        salesData.value = Array.from({length: 90}, () => Math.floor(Math.random() * 3000) + 1000)
+      }
+      // 重新初始化图表
+      initSalesChart()
+    }
     
     // 监听图表周期变化
     watch(chartPeriod, (newPeriod) => {
@@ -285,7 +348,13 @@ export default {
       salesChartRef,
       orderTypeChartRef,
       navigateToOrders,
-      viewOrder
+      navigateToStatistics,
+      navigateToIngredients,
+      viewOrder,
+      handleOrderRowClick,
+      handleChartPeriodChange,
+      orderDetailVisible,
+      selectedOrder
     }
   }
 }
@@ -394,5 +463,23 @@ export default {
   .chart {
     height: 200px;
   }
+}
+
+/* 订单详情弹窗样式 */
+.order-notes {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #eaeaea;
+}
+
+.order-notes h4 {
+  margin-bottom: 10px;
+  color: #303133;
+}
+
+.order-notes p {
+  margin: 0;
+  color: #606266;
+  line-height: 1.5;
 }
 </style>

@@ -10,6 +10,9 @@ import FinancialManagement from '../views/FinancialManagement.vue'
 import SystemManagement from '../views/SystemManagement.vue'
 import MotherBabyService from '../views/MotherBabyService.vue'
 import Statistics from '../views/Statistics.vue'
+import CalendarView from '../views/CalendarView.vue'
+import TabooRuleManagement from '../views/TabooRuleManagement.vue'
+import CustomerManagement from '../views/CustomerManagement.vue'
 import { useAuthStore } from '../store/auth'
 
 const routes = [
@@ -41,6 +44,12 @@ const routes = [
     path: '/menus',
     name: 'MenuManagement',
     component: MenuManagement,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/customers',
+    name: 'CustomerManagement',
+    component: CustomerManagement,
     meta: { requiresAuth: true }
   },
   {
@@ -77,6 +86,18 @@ const routes = [
     path: '/statistics',
     name: 'Statistics',
     component: Statistics,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/calendar',
+    name: 'CalendarView',
+    component: CalendarView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/taboo-rules',
+    name: 'TabooRuleManagement',
+    component: TabooRuleManagement,
     meta: { requiresAuth: true }
   }
 ]

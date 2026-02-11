@@ -1,5 +1,6 @@
-from app import db
+from extensions import db
 from datetime import datetime
+from sqlalchemy import DECIMAL
 
 class CustomerOrder(db.Model):
     __tablename__ = 'customer_orders'
@@ -10,9 +11,9 @@ class CustomerOrder(db.Model):
     delivery_date = db.Column(db.Date)
     start_time = db.Column(db.Time)  # 开始时间
     end_time = db.Column(db.Time)  # 结束时间
-    duration = db.Column(db.Decimal(5, 2))  # 时长
+    duration = db.Column(DECIMAL(5, 2))  # 时长
     order_type = db.Column(db.String(20), nullable=False)  # 订单类型（meal/service）
-    total_amount = db.Column(db.Decimal(10, 2), nullable=False)
+    total_amount = db.Column(DECIMAL(10, 2), nullable=False)
     payment_status = db.Column(db.String(20), default='pending')  # pending/paid/cancelled
     payment_method = db.Column(db.String(20))  # wechat/alipay/bank/cash
     transaction_id = db.Column(db.Integer, db.ForeignKey('transactions.id'))
@@ -60,8 +61,8 @@ class OrderItem(db.Model):
     item_type = db.Column(db.String(20), nullable=False)  # 项目类型（dish/service）
     item_id = db.Column(db.Integer)  # 项目ID（菜品ID/服务ID）
     quantity = db.Column(db.Integer, nullable=False)
-    unit_price = db.Column(db.Decimal(10, 2), nullable=False)
-    subtotal = db.Column(db.Decimal(10, 2), nullable=False)
+    unit_price = db.Column(DECIMAL(10, 2), nullable=False)
+    subtotal = db.Column(DECIMAL(10, 2), nullable=False)
     
     def __repr__(self):
         return f'<OrderItem order_id={self.order_id} item_type={self.item_type}>'

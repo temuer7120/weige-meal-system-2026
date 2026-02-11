@@ -2,7 +2,7 @@ from flask import request, jsonify
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from werkzeug.security import check_password_hash
 from . import auth_bp
-from app import db
+from extensions import db
 from models.user import User
 from models.customer import Customer
 from models.employee import Employee

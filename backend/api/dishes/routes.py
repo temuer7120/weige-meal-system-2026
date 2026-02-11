@@ -1,8 +1,8 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
-from .. import dishes_bp
-from ...models.dish import Dish
-from ... import db
+from . import dishes_bp
+from models.dish import Dish
+from extensions import db
 
 @dishes_bp.route('', methods=['GET'])
 @jwt_required()

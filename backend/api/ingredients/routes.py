@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 from . import ingredients_bp
 from models.ingredient import Ingredient
 from models.supplier import Supplier
-from app import db
+from extensions import db
 
 @ingredients_bp.route('', methods=['GET'])
 @jwt_required()

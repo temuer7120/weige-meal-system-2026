@@ -1,8 +1,8 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
-from .. import financial_bp
-from ...models.financial import Transaction, Attendance, Workload, Salary, PurchaseOrder, PurchaseOrderItem, PaymentTransaction
-from ... import db
+from . import financial_bp
+from models.financial import Transaction, Attendance, Workload, Salary, PurchaseOrder, PurchaseOrderItem, PaymentTransaction
+from extensions import db
 
 @financial_bp.route('/transactions', methods=['GET'])
 @jwt_required()

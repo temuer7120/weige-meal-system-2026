@@ -1,5 +1,6 @@
-from app import db
+from extensions import db
 from datetime import datetime
+from sqlalchemy import DECIMAL
 
 class Menu(db.Model):
     __tablename__ = 'menus'
@@ -8,7 +9,7 @@ class Menu(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     type = db.Column(db.String(20), nullable=False)  # breakfast/lunch/dinner
-    price = db.Column(db.Decimal(10, 2))
+    price = db.Column(DECIMAL(10, 2))
     status = db.Column(db.String(20), default='active')  # active/inactive
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     

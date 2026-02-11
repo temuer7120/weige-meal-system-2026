@@ -1,4 +1,4 @@
-from app import db
+from extensions import db
 from datetime import datetime
 
 class Customer(db.Model):
@@ -14,7 +14,9 @@ class Customer(db.Model):
     check_in_date = db.Column(db.Date)
     check_out_date = db.Column(db.Date)
     dietary_restrictions = db.Column(db.Text)
+    service_restrictions = db.Column(db.Text)
     preferences = db.Column(db.Text)
+    health_status = db.Column(db.Text)
     status = db.Column(db.String(20), default='active')  # active/inactive
     
     def __repr__(self):
@@ -32,6 +34,8 @@ class Customer(db.Model):
             'check_in_date': self.check_in_date.isoformat() if self.check_in_date else None,
             'check_out_date': self.check_out_date.isoformat() if self.check_out_date else None,
             'dietary_restrictions': self.dietary_restrictions,
+            'service_restrictions': self.service_restrictions,
             'preferences': self.preferences,
+            'health_status': self.health_status,
             'status': self.status
         }

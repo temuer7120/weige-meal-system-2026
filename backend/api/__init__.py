@@ -11,7 +11,6 @@ from .menus import menus_bp
 from .orders import orders_bp
 from .employees import employees_bp
 from .financial import financial_bp
-from .mother_baby import mother_baby_bp
 from .system import system_bp
 
 api_bp.register_blueprint(auth_bp, url_prefix='/auth')
@@ -23,5 +22,4 @@ api_bp.register_blueprint(menus_bp, url_prefix='/menus')
 api_bp.register_blueprint(orders_bp, url_prefix='/orders')
 api_bp.register_blueprint(employees_bp, url_prefix='/employees')
 api_bp.register_blueprint(financial_bp, url_prefix='/financial')
-api_bp.register_blueprint(mother_baby_bp, url_prefix='/mother-baby')
 api_bp.register_blueprint(system_bp, url_prefix='/system')

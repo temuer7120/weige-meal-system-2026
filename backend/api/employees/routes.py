@@ -1,10 +1,10 @@
 from flask import request, jsonify
 from flask_jwt_extended import jwt_required
-from .. import employees_bp
-from ...models.employee import Employee
-from ...models.order import CustomerOrder
-from ...models.financial import Workload, Salary
-from ... import db
+from . import employees_bp
+from models.employee import Employee
+from models.order import CustomerOrder
+from models.financial import Workload, Salary
+from extensions import db
 
 @employees_bp.route('', methods=['GET'])
 @jwt_required()

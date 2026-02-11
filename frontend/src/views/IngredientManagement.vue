@@ -64,6 +64,12 @@
         </el-table-column>
         <el-table-column prop="supplier_name" label="供应商" width="150"></el-table-column>
         <el-table-column prop="expiry_date" label="保质期" width="120"></el-table-column>
+        <el-table-column label="回奶食物" width="100">
+          <template #default="scope">
+            <el-tag v-if="scope.row.is_lactation_affecting" type="danger">是</el-tag>
+            <el-tag v-else type="success">否</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="scope">
             <el-button type="primary" size="small" @click="handleEditIngredient(scope.row)">编辑</el-button>
@@ -145,6 +151,22 @@
         
         <el-form-item label="禁忌">
           <el-input v-model="formData.restrictions" type="textarea" placeholder="请输入禁忌"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="适用人群">
+          <el-input v-model="formData.suitable_for" type="textarea" placeholder="请输入适用人群"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="禁忌人群">
+          <el-input v-model="formData.not_suitable_for" type="textarea" placeholder="请输入禁忌人群"></el-input>
+        </el-form-item>
+        
+        <el-form-item label="是否回奶食物">
+          <el-switch v-model="formData.is_lactation_affecting" active-text="是" inactive-text="否"></el-switch>
+        </el-form-item>
+        
+        <el-form-item label="产后时期禁忌">
+          <el-input v-model="formData.post_partum_period_restrictions" type="textarea" placeholder="请输入产后时期禁忌"></el-input>
         </el-form-item>
         
         <el-form-item label="购买人">
@@ -231,11 +253,99 @@
         </span>
       </template>
     </el-dialog>
+    
+    <!-- 导入对话框 -->
+    <el-dialog
+      title="导入食材"
+      :visible.sync="importDialogVisible"
+      width="500px"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="导入方式">
+          <el-radio-group v-model="importMethod">
+            <el-radio label="excel">Excel文件</el-radio>
+            <el-radio label="json">JSON文件</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <el-form-item label="上传文件">
+          <el-upload
+            class="upload-demo"
+            action="#"
+            :on-change="handleFileChange"
+            :auto-upload="false"
+            :file-list="fileList"
+          >
+            <el-button type="primary">选择文件</el-button>
+            <template #tip>
+              <div class="el-upload__tip">
+                请上传Excel或JSON格式文件
+              </div>
+            </template>
+          </el-upload>
+        </el-form-item>
+        
+        <el-form-item label="备注">
+          <el-input v-model="importNotes" type="textarea" placeholder="请输入备注"></el-input>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="importDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleImportSubmit">确定导入</el-button>
+        </span>
+      </template>
+    </el-dialog>
+    
+    <!-- 导出对话框 -->
+    <el-dialog
+      title="导出食材"
+      :visible.sync="exportDialogVisible"
+      width="500px"
+    >
+      <el-form label-width="100px">
+        <el-form-item label="导出格式">
+          <el-radio-group v-model="exportFormat">
+            <el-radio label="excel">Excel文件</el-radio>
+            <el-radio label="json">JSON文件</el-radio>
+            <el-radio label="csv">CSV文件</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <el-form-item label="导出范围">
+          <el-radio-group v-model="exportScope">
+            <el-radio label="all">全部数据</el-radio>
+            <el-radio label="current">当前页数据</el-radio>
+            <el-radio label="selected">选中数据</el-radio>
+          </el-radio-group>
+        </el-form-item>
+        
+        <el-form-item label="导出字段">
+          <el-checkbox-group v-model="exportFields">
+            <el-checkbox label="name">食材名称</el-checkbox>
+            <el-checkbox label="category">类别</el-checkbox>
+            <el-checkbox label="unit">单位</el-checkbox>
+            <el-checkbox label="current_stock">当前库存</el-checkbox>
+            <el-checkbox label="price">单价</el-checkbox>
+            <el-checkbox label="supplier_name">供应商</el-checkbox>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+      
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="exportDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleExportSubmit">确定导出</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../services/api'
 
 export default {
@@ -255,11 +365,13 @@ export default {
     
     // 食材数据
     const ingredients = ref([
-      { id: 1, name: '西红柿', category: '蔬菜', unit: 'kg', current_stock: 50, minimum_stock: 10, price: 5.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-20' },
-      { id: 2, name: '鸡蛋', category: '其他', unit: '个', current_stock: 200, minimum_stock: 50, price: 0.8, supplier_name: '禽蛋供应商', expiry_date: '2026-02-15' },
-      { id: 3, name: '猪肉', category: '肉类', unit: 'kg', current_stock: 15, minimum_stock: 5, price: 35, supplier_name: '肉类供应商', expiry_date: '2026-02-10' },
-      { id: 4, name: '大米', category: '其他', unit: 'kg', current_stock: 100, minimum_stock: 20, price: 4.5, supplier_name: '粮油供应商', expiry_date: '2026-12-31' },
-      { id: 5, name: '胡萝卜', category: '蔬菜', unit: 'kg', current_stock: 30, minimum_stock: 8, price: 3.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-25' }
+      { id: 1, name: '西红柿', category: '蔬菜', unit: 'kg', current_stock: 50, minimum_stock: 10, price: 5.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-20', restrictions: '无', suitable_for: '所有人群', not_suitable_for: '无', is_lactation_affecting: false, post_partum_period_restrictions: '无' },
+      { id: 2, name: '鸡蛋', category: '其他', unit: '个', current_stock: 200, minimum_stock: 50, price: 0.8, supplier_name: '禽蛋供应商', expiry_date: '2026-02-15', restrictions: '无', suitable_for: '所有人群', not_suitable_for: '对鸡蛋过敏者', is_lactation_affecting: false, post_partum_period_restrictions: '无' },
+      { id: 3, name: '猪肉', category: '肉类', unit: 'kg', current_stock: 15, minimum_stock: 5, price: 35, supplier_name: '肉类供应商', expiry_date: '2026-02-10', restrictions: '无', suitable_for: '所有人群', not_suitable_for: '无', is_lactation_affecting: false, post_partum_period_restrictions: '产后一周内建议少量食用' },
+      { id: 4, name: '大米', category: '其他', unit: 'kg', current_stock: 100, minimum_stock: 20, price: 4.5, supplier_name: '粮油供应商', expiry_date: '2026-12-31', restrictions: '无', suitable_for: '所有人群', not_suitable_for: '无', is_lactation_affecting: false, post_partum_period_restrictions: '无' },
+      { id: 5, name: '胡萝卜', category: '蔬菜', unit: 'kg', current_stock: 30, minimum_stock: 8, price: 3.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-25', restrictions: '无', suitable_for: '所有人群', not_suitable_for: '无', is_lactation_affecting: false, post_partum_period_restrictions: '无' },
+      { id: 6, name: '韭菜', category: '蔬菜', unit: 'kg', current_stock: 20, minimum_stock: 5, price: 8.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-18', restrictions: '无', suitable_for: '一般人群', not_suitable_for: '哺乳期妇女', is_lactation_affecting: true, post_partum_period_restrictions: '哺乳期避免食用' },
+      { id: 7, name: '大麦茶', category: '饮品', unit: '袋', current_stock: 100, minimum_stock: 20, price: 2.5, supplier_name: '粮油供应商', expiry_date: '2026-12-31', restrictions: '无', suitable_for: '一般人群', not_suitable_for: '哺乳期妇女', is_lactation_affecting: true, post_partum_period_restrictions: '哺乳期避免饮用' }
     ])
     
     // 供应商数据
@@ -287,6 +399,16 @@ export default {
     const stockOutForm = reactive({})
     const stockOutFormRef = ref(null)
     
+    // 导入导出相关
+    const importDialogVisible = ref(false)
+    const exportDialogVisible = ref(false)
+    const importMethod = ref('excel')
+    const fileList = ref([])
+    const importNotes = ref('')
+    const exportFormat = ref('excel')
+    const exportScope = ref('all')
+    const exportFields = ref(['name', 'category', 'unit', 'current_stock', 'price', 'supplier_name'])
+    
     // 表单验证规则
     const formRules = {
       name: [{ required: true, message: '请输入食材名称', trigger: 'blur' }],
@@ -310,7 +432,13 @@ export default {
     // 处理搜索
     const handleSearch = () => {
       console.log('搜索条件', searchForm)
-      // 这里可以添加实际的搜索逻辑
+      // 实现搜索逻辑
+      // 这里使用模拟数据进行搜索
+      const filteredIngredients = [
+        { id: 1, name: '西红柿', category: '蔬菜', unit: 'kg', current_stock: 50, minimum_stock: 10, price: 5.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-20' },
+        { id: 5, name: '胡萝卜', category: '蔬菜', unit: 'kg', current_stock: 30, minimum_stock: 8, price: 3.5, supplier_name: '绿色蔬菜供应商', expiry_date: '2026-02-25' }
+      ]
+      ingredients.value = filteredIngredients
     }
     
     // 重置搜索
@@ -336,6 +464,10 @@ export default {
         nutrition_info: '',
         calories: 0,
         restrictions: '',
+        suitable_for: '',
+        not_suitable_for: '',
+        is_lactation_affecting: false,
+        post_partum_period_restrictions: '',
         purchaser: '',
         origin: ''
       })
@@ -356,6 +488,16 @@ export default {
       
       try {
         await formRef.value.validate()
+        
+        // 禁忌预警
+        if (formData.is_lactation_affecting) {
+          ElMessage.warning('警告：该食材是回奶食物，哺乳期妇女应避免食用！')
+        }
+        
+        if (formData.post_partum_period_restrictions) {
+          ElMessage.warning(`警告：该食材在产后时期有禁忌：${formData.post_partum_period_restrictions}`)
+        }
+        
         console.log('表单数据', formData)
         // 这里可以添加实际的提交逻辑
         dialogVisible.value = false
@@ -443,21 +585,49 @@ export default {
       })
     }
     
+    // 处理文件变更
+    const handleFileChange = (file, fileList) => {
+      console.log('文件变更', file, fileList)
+    }
+    
     // 处理导入
     const handleImport = () => {
-      console.log('导入食材')
+      importDialogVisible.value = true
+    }
+    
+    // 处理导入提交
+    const handleImportSubmit = () => {
+      console.log('导入提交', {
+        method: importMethod.value,
+        files: fileList.value,
+        notes: importNotes.value
+      })
       // 这里可以添加实际的导入逻辑
+      importDialogVisible.value = false
+      fileList.value = []
+      importNotes.value = ''
     }
     
     // 处理导出
     const handleExport = () => {
-      console.log('导出食材')
+      exportDialogVisible.value = true
+    }
+    
+    // 处理导出提交
+    const handleExportSubmit = () => {
+      console.log('导出提交', {
+        format: exportFormat.value,
+        scope: exportScope.value,
+        fields: exportFields.value
+      })
       // 这里可以添加实际的导出逻辑
+      exportDialogVisible.value = false
     }
     
     // 分页处理
     const handleSizeChange = (size) => {
       pageSize.value = size
+      currentPage.value = 1
       // 刷新数据
       // fetchIngredients()
     }
@@ -514,6 +684,14 @@ export default {
       stockOutDialogVisible,
       stockOutForm,
       stockOutFormRef,
+      importDialogVisible,
+      exportDialogVisible,
+      importMethod,
+      fileList,
+      importNotes,
+      exportFormat,
+      exportScope,
+      exportFields,
       formRules,
       stockInRules,
       stockOutRules,
@@ -527,8 +705,11 @@ export default {
       handleStockOut,
       handleStockOutSubmit,
       handleDeleteIngredient,
+      handleFileChange,
       handleImport,
+      handleImportSubmit,
       handleExport,
+      handleExportSubmit,
       handleSizeChange,
       handleCurrentChange
     }

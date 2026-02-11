@@ -11,14 +11,14 @@
           class="el-menu-horizontal"
           mode="horizontal"
           @select="handleMenuSelect"
-          background-color="#303133"
-          text-color="#fff"
-          active-text-color="#409eff"
+          background-color="#f6b3ba"
+          text-color="#303133"
+          active-text-color="#721c24"
           :router="true"
         >
           <el-menu-item index="/">
             <el-icon><House /></el-icon>
-            <span>仪表盘</span>
+            <span>主页</span>
           </el-menu-item>
           
           <!-- 月子餐下拉菜单 -->
@@ -30,8 +30,18 @@
             <el-menu-item index="/ingredients" v-if="isAdmin || userRole === 'staff'">食材管理</el-menu-item>
             <el-menu-item index="/dishes" v-if="isAdmin || userRole === 'staff'">菜品管理</el-menu-item>
             <el-menu-item index="/menus" v-if="isAdmin || userRole === 'staff'">菜单管理</el-menu-item>
+          </el-sub-menu>
+          
+          <!-- 客户服务下拉菜单 -->
+          <el-sub-menu index="客户服务">
+            <template #title>
+              <el-icon><User /></el-icon>
+              <span>客户服务</span>
+            </template>
+            <el-menu-item index="/customers" v-if="isAdmin || userRole === 'manager' || userRole === 'staff'">客户管理</el-menu-item>
             <el-menu-item index="/mother-baby" v-if="isAdmin || userRole === 'staff' || userRole === 'customer'">母婴服务</el-menu-item>
             <el-menu-item index="/orders" v-if="isAdmin || userRole === 'manager' || userRole === 'staff'">订单管理</el-menu-item>
+            <el-menu-item index="/calendar" v-if="isAdmin || userRole === 'manager' || userRole === 'staff'">服务日历</el-menu-item>
           </el-sub-menu>
           
           <!-- 公司管理下拉菜单 -->
@@ -70,7 +80,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import { House, Coffee, OfficeBuilding } from '@element-plus/icons-vue'
+import { House, Coffee, User, OfficeBuilding } from '@element-plus/icons-vue'
 
 export default {
   name: 'Layout',
@@ -142,22 +152,22 @@ export default {
   display: flex;
   align-items: center;
   padding: 0 20px;
-  background-color: #303133;
+  background-color: #f6b3ba;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   height: 60px;
 }
 
 .logo {
-  margin-right: 60px;
-  min-width: 280px;
+  margin-right: 30px;
+  min-width: 220px;
   display: flex;
   align-items: center;
 }
 
 .logo h1 {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  color: #fff;
+  color: #721c24;
   margin: 0;
   white-space: nowrap;
 }
@@ -188,7 +198,7 @@ export default {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #fff;
+  color: #303133;
 }
 
 .user-role {
